@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eBird Hotspot Checker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gradient-to-br from-sky-50 to-blue-100 min-h-screen p-6">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <div class="flex items-center gap-3 mb-6">
+                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                <h1 class="text-3xl font-bold text-gray-800">eBird Hotspot Checker</h1>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">eBird API Key</label>
+                    <input type="text" id="apiKey" value="kpsjver6nili"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Species Code</label>
+                        <input type="text" id="speciesCode" value="snoowl"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Days Back (1-30)</label>
+                        <input type="number" id="daysBack" value="30" min="1" max="30"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                </div>
+
+                <button onclick="checkHotspots()" id="checkBtn"
+                    class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                    Check Hotspots
+                </button>
+            </div>
+
+            <div id="error" class="hidden mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700"></div>
+        </div>
+
+        <div id="results" class="space-y-4"></div>
+
+        <div class="mt-6 bg-white rounded-lg shadow p-4 text-sm text-gray-600">
+            <p class="font-semibold mb-2">Common Species Codes:</p>
+            <p>• Snowy Owl: snoowl</p>
+            <p>• Great Horned Owl: grhowl</p>
+            <p>• Red-tailed Hawk: rethaw</p>
+            <p class="mt-2">
+                <a href="https://ebird.org/species" target="_blank" class="text-blue-600 hover:underline">
+                    Find more species codes on eBird →
+                </a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const hotspots = [
+            { id: 'L4123220', name: 'Holland Marsh between Hwy 400 and Keele Street' },
+            { id: 'L6504833', name: 'Location L6504833' }
+        ];
+
+        async function checkHotspots() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const speciesCode = document.getElementById('speciesCode').value.trim();
+            const daysBack = parseInt(document.getElementById('daysBack').value);
+            const errorDiv = document.getElementById('error');
+            const resultsDiv = document.getElementById('results');
+            const checkBtn = document.getElementById('checkBtn');
+
+            errorDiv.classList.add('hidden');
+            resultsDiv.innerHTML = '';
+            checkBtn.disabled = true;
+            checkBtn.textContent = 'Checking...';
+
+            try {
+                const results = await Promise.all(hotspots.map(async (hotspot) => {
+                    try {
+                        const response = await fetch('/api/observations', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                apiKey,
+                                locationId: hotspot.id,
+                                speciesCode,
+                                daysBack
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            return { hotspot, observations: [], error: data.error || 'API error' };
+                        }
+
+                        return { hotspot, observations: data, error: null };
+                    } catch (err) {
+                        return { hotspot, observations: [], error: err.message };
+                    }
+                }));
+
+                displayResults(results, daysBack);
+            } catch (err) {
+                errorDiv.textContent = err.message;
+                errorDiv.classList.remove('hidden');
+            } finally {
+                checkBtn.disabled = false;
+                checkBtn.textContent = 'Check Hotspots';
+            }
+        }
+
+        function displayResults(results, daysBack) {
+            const resultsDiv = document.getElementById('results');
+
+            results.forEach(result => {
+                const resultCard = document.createElement('div');
+                resultCard.className = 'bg-white rounded-lg shadow-lg p-6';
+
+                let content = `
+                    <div class="flex items-start gap-3 mb-4">
+                        <svg class="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-800">${result.hotspot.name}</h2>
+                            <p class="text-sm text-gray-500">Location ID: ${result.hotspot.id}</p>
+                        </div>
+                    </div>
+                `;
+
+                if (result.error) {
+                    content += `<div class="text-red-600 p-3 bg-red-50 rounded">Error: ${result.error}</div>`;
+                } else if (result.observations.length === 0) {
+                    content += `<div class="text-gray-600 italic">No observations found in the last ${daysBack} days</div>`;
+                } else {
+                    content += `<div class="space-y-3">
+                        <p class="font-semibold text-green-700">${result.observations.length} observation(s) found</p>`;
+
+                    result.observations.forEach(obs => {
+                        const date = new Date(obs.obsDt).toLocaleDateString('en-US', {
+                            year: 'numeric', month: 'short', day: 'numeric',
+                            hour: '2-digit', minute: '2-digit'
+                        });
+
+                        content += `
+                            <div class="border-l-4 border-blue-400 pl-4 py-2 bg-blue-50 rounded">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="font-medium">${date}</span>
+                                </div>
+                                <div class="text-sm text-gray-700"><span class="font-medium">Species:</span> ${obs.comName}</div>
+                                ${obs.howMany ? `<div class="text-sm text-gray-700"><span class="font-medium">Count:</span> ${obs.howMany}</div>` : ''}
+                                <div class="text-sm text-gray-700"><span class="font-medium">Observer:</span> ${obs.userDisplayName || 'Anonymous'}</div>
+                                ${obs.subId ? `<a href="https://ebird.org/checklist/${obs.subId}" target="_blank" class="text-sm text-blue-600 hover:underline">View checklist →</a>` : ''}
+                            </div>
+                        `;
+                    });
+
+                    content += `</div>`;
+                }
+
+                resultCard.innerHTML = content;
+                resultsDiv.appendChild(resultCard);
+            });
+        }
+    </script>
+</body>
+
+</html>
