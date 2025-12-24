@@ -22,40 +22,100 @@
             <div class="space-y-4">
                 <!-- API Key input removed for security -->
 
-                <div class="relative">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Species (Start typing)</label>
-                    <input type="text" id="speciesSearch" placeholder="e.g. Snowy Owl" autocomplete="off"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <input type="hidden" id="speciesCode" value="">
-                    <!-- Dropdown -->
-                    <div id="speciesDropdown"
-                        class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto hidden">
+                <!-- Shared Inputs -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="relative">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Species (Start typing)</label>
+                        <input type="text" id="speciesSearch" placeholder="e.g. Snowy Owl" autocomplete="off"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <input type="hidden" id="speciesCode" value="">
+                        <!-- Dropdown -->
+                        <div id="speciesDropdown"
+                            class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto hidden">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Days Back (1-30)</label>
+                        <input type="number" id="daysBack" value="30" min="1" max="30"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Days Back (1-30)</label>
-                    <input type="number" id="daysBack" value="30" min="1" max="30"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+
+                <!-- Tabs -->
+                <div class="flex border-b border-gray-200 mb-6">
+                    <button id="tab-btn-hotspots" onclick="switchTab('hotspots')"
+                        class="w-1/2 py-2 px-4 text-center font-medium text-blue-600 border-b-2 border-blue-600 focus:outline-none">
+                        My Favorites
+                    </button>
+                    <button id="tab-btn-nearby" onclick="switchTab('nearby')"
+                        class="w-1/2 py-2 px-4 text-center font-medium text-gray-500 hover:text-gray-700 focus:outline-none">
+                        Explore Nearby
+                    </button>
+                </div>
+
+                <!-- Tab Content: Hotspots -->
+                <div id="tab-hotspots" class="space-y-4">
+                    <p class="text-sm text-gray-600 mb-4">Check for sightings at your configured favorite locations.</p>
+                    <button onclick="checkHotspots()" id="checkBtn"
+                        class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                        Check My Hotspots
+                    </button>
+                </div>
+
+                <!-- Tab Content: Nearby -->
+                <div id="tab-nearby" class="hidden space-y-4">
+                    <p class="text-sm text-gray-600 mb-4">Find sightings near a specific location.</p>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Latitude</label>
+                            <input type="text" id="lat" placeholder="43.65"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Longitude</label>
+                            <input type="text" id="lng" placeholder="-79.38"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                    </div>
+
+                    <button onclick="getLocation()" type="button"
+                        class="w-full bg-green-100 text-green-700 py-2 rounded-lg font-medium hover:bg-green-200 transition-colors flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                            </path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        Use Current Location
+                    </button>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Distance (km)</label>
+                        <input type="range" id="dist" min="1" max="50" value="25" class="w-full"
+                            oninput="document.getElementById('distVal').innerText = this.value">
+                        <div class="text-xs text-gray-500 text-right"><span id="distVal">25</span> km</div>
+                    </div>
+
+                    <button onclick="checkNearby()" id="checkNearbyBtn"
+                        class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                        Find Nearby Sightings
+                    </button>
                 </div>
             </div>
 
-            <button onclick="checkHotspots()" id="checkBtn"
-                class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors mt-2">
-                Check Hotspots
-            </button>
+            <div id="error" class="hidden mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700"></div>
         </div>
 
-        <div id="error" class="hidden mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700"></div>
-    </div>
+        <div id="results" class="space-y-4"></div>
 
-    <div id="results" class="space-y-4"></div>
-
-    <div class="mt-6 bg-white rounded-lg shadow p-4 text-sm text-gray-600">
-        <p class="font-semibold mb-2">Popular searches:</p>
-        <p>• Snowy Owl</p>
-        <p>• Great Horned Owl</p>
-        <p>• Red-tailed Hawk</p>
-    </div>
+        <div class="mt-6 bg-white rounded-lg shadow p-4 text-sm text-gray-600">
+            <p class="font-semibold mb-2">Popular searches:</p>
+            <p>• Snowy Owl</p>
+            <p>• Great Horned Owl</p>
+            <p>• Red-tailed Hawk</p>
+        </div>
     </div>
 
     <script>
@@ -65,11 +125,44 @@
         ];
 
         let allSpecies = [];
+        let currentTab = 'hotspots';
 
         // Initialize user functionality
         document.addEventListener('DOMContentLoaded', async () => {
             initSpeciesLookup();
         });
+
+        function switchTab(tab) {
+            currentTab = tab;
+            // Update Buttons
+            document.getElementById('tab-btn-hotspots').className = tab === 'hotspots'
+                ? 'w-1/2 py-2 px-4 text-center font-medium text-blue-600 border-b-2 border-blue-600 focus:outline-none'
+                : 'w-1/2 py-2 px-4 text-center font-medium text-gray-500 hover:text-gray-700 focus:outline-none';
+            document.getElementById('tab-btn-nearby').className = tab === 'nearby'
+                ? 'w-1/2 py-2 px-4 text-center font-medium text-blue-600 border-b-2 border-blue-600 focus:outline-none'
+                : 'w-1/2 py-2 px-4 text-center font-medium text-gray-500 hover:text-gray-700 focus:outline-none';
+
+            // Update Content
+            document.getElementById('tab-hotspots').classList.toggle('hidden', tab !== 'hotspots');
+            document.getElementById('tab-nearby').classList.toggle('hidden', tab !== 'nearby');
+
+            // Clear results/errors
+            document.getElementById('results').innerHTML = '';
+            document.getElementById('error').classList.add('hidden');
+        }
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    document.getElementById('lat').value = position.coords.latitude.toFixed(4);
+                    document.getElementById('lng').value = position.coords.longitude.toFixed(4);
+                }, (err) => {
+                    alert("Error getting location: " + err.message);
+                });
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
 
         async function initSpeciesLookup() {
             try {
@@ -140,11 +233,10 @@
                         // Select the highlighted item
                         const s = currentMatches[selectedIndex];
                         selectSpecies(s.code, s.commonName);
-                        // Optional: Trigger search immediately? User said "activate the search".
-                        // Let's stick to Select first. User can hit Enter again to search.
                     } else {
-                        // Dropdown closed or nothing selected -> Search
-                        checkHotspots();
+                        // Trigger search based on active tab
+                        if (currentTab === 'hotspots') checkHotspots();
+                        else checkNearby();
                     }
                     return;
                 }
@@ -211,7 +303,6 @@
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
-                                // apiKey, // Removed from client-side
                                 locationId: hotspot.id,
                                 speciesCode,
                                 daysBack
@@ -230,17 +321,70 @@
                     }
                 }));
 
-                displayResults(results, daysBack);
+                displayHotspotResults(results, daysBack);
             } catch (err) {
                 errorDiv.textContent = err.message;
                 errorDiv.classList.remove('hidden');
             } finally {
                 checkBtn.disabled = false;
-                checkBtn.textContent = 'Check Hotspots';
+                checkBtn.textContent = 'Check My Hotspots';
             }
         }
 
-        function displayResults(results, daysBack) {
+        async function checkNearby() {
+            const speciesCode = document.getElementById('speciesCode').value.trim();
+            const daysBack = parseInt(document.getElementById('daysBack').value);
+            const lat = document.getElementById('lat').value;
+            const lng = document.getElementById('lng').value;
+            const dist = document.getElementById('dist').value;
+
+            const errorDiv = document.getElementById('error');
+            const resultsDiv = document.getElementById('results');
+            const checkBtn = document.getElementById('checkNearbyBtn');
+
+            if (!speciesCode) {
+                errorDiv.textContent = "Please select a species from the list.";
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+            if (!lat || !lng) {
+                errorDiv.textContent = "Please enter Latitude and Longitude.";
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            errorDiv.classList.add('hidden');
+            resultsDiv.innerHTML = '';
+            checkBtn.disabled = true;
+            checkBtn.textContent = 'Searching...';
+
+            try {
+                const response = await fetch('/api/nearby', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        speciesCode,
+                        lat,
+                        lng,
+                        dist,
+                        daysBack
+                    })
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'API Error');
+
+                displayNearbyResults(data, daysBack);
+            } catch (err) {
+                errorDiv.textContent = err.message;
+                errorDiv.classList.remove('hidden');
+            } finally {
+                checkBtn.disabled = false;
+                checkBtn.textContent = 'Find Nearby Sightings';
+            }
+        }
+
+        function displayHotspotResults(results, daysBack) {
             const resultsDiv = document.getElementById('results');
 
             results.forEach(result => {
@@ -269,22 +413,7 @@
                         <p class="font-semibold text-green-700">${result.observations.length} observation(s) found</p>`;
 
                     result.observations.forEach(obs => {
-                        const date = new Date(obs.obsDt).toLocaleDateString('en-US', {
-                            year: 'numeric', month: 'short', day: 'numeric',
-                            hour: '2-digit', minute: '2-digit'
-                        });
-
-                        content += `
-                            <div class="border-l-4 border-blue-400 pl-4 py-2 bg-blue-50 rounded">
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="font-medium">${date}</span>
-                                </div>
-                                <div class="text-sm text-gray-700"><span class="font-medium">Species:</span> ${obs.comName}</div>
-                                ${obs.howMany ? `<div class="text-sm text-gray-700"><span class="font-medium">Count:</span> ${obs.howMany}</div>` : ''}
-                                <div class="text-sm text-gray-700"><span class="font-medium">Observer:</span> ${obs.userDisplayName || 'Anonymous'}</div>
-                                ${obs.subId ? `<a href="https://ebird.org/checklist/${obs.subId}" target="_blank" class="text-sm text-blue-600 hover:underline">View checklist →</a>` : ''}
-                            </div>
-                        `;
+                        content += renderObservation(obs);
                     });
 
                     content += `</div>`;
@@ -293,6 +422,60 @@
                 resultCard.innerHTML = content;
                 resultsDiv.appendChild(resultCard);
             });
+        }
+
+        function displayNearbyResults(observations, daysBack) {
+            const resultsDiv = document.getElementById('results');
+
+            if (observations.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="bg-white rounded-lg shadow-lg p-6 text-center text-gray-600 italic">
+                        No observations found nearby in the last ${daysBack} days.
+                    </div>
+                `;
+                return;
+            }
+
+            const container = document.createElement('div');
+            container.className = 'bg-white rounded-lg shadow-lg p-6';
+            container.innerHTML = `<h2 class="text-xl font-bold text-gray-800 mb-4">${observations.length} Sightings Found Nearby</h2><div class="space-y-4"></div>`;
+            const list = container.querySelector('.space-y-4');
+
+            observations.forEach(obs => {
+                const item = document.createElement('div');
+                item.className = 'border-l-4 border-green-400 pl-4 py-2 bg-green-50 rounded';
+                item.innerHTML = `
+                    <div class="flex justify-between items-start">
+                         <div>
+                            <div class="font-bold text-gray-800">${obs.locName}</div>
+                            <div class="text-sm text-gray-600">${new Date(obs.obsDt).toLocaleString()}</div>
+                         </div>
+                         <a href="https://google.com/maps?q=${obs.lat},${obs.lng}" target="_blank" class="text-blue-600 hover:text-blue-800">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                         </a>
+                    </div>
+                    ${renderObservation(obs, false)}
+                `;
+                list.appendChild(item);
+            });
+
+            resultsDiv.appendChild(container);
+        }
+
+        function renderObservation(obs, showDate = true) {
+            const date = new Date(obs.obsDt).toLocaleDateString('en-US', {
+                year: 'numeric', month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+
+            return `
+                <div class="mt-2 text-sm text-gray-700">
+                    ${showDate ? `<div class="font-medium text-gray-900">${date}</div>` : ''}
+                    <div><span class="font-medium">Count:</span> ${obs.howMany || 1}</div>
+                    <div><span class="font-medium">Observer:</span> ${obs.userDisplayName || 'Anonymous'}</div>
+                     ${obs.subId ? `<a href="https://ebird.org/checklist/${obs.subId}" target="_blank" class="text-blue-600 hover:underline">View checklist →</a>` : ''}
+                </div>
+            `;
         }
     </script>
 </body>
