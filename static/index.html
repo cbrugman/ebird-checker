@@ -110,12 +110,7 @@
 
         <div id="results" class="space-y-4"></div>
 
-        <div class="mt-6 bg-white rounded-lg shadow p-4 text-sm text-gray-600">
-            <p class="font-semibold mb-2">Popular searches:</p>
-            <p>• Snowy Owl</p>
-            <p>• Great Horned Owl</p>
-            <p>• Red-tailed Hawk</p>
-        </div>
+
     </div>
 
     <script>
@@ -334,8 +329,8 @@
         async function checkNearby() {
             const speciesCode = document.getElementById('speciesCode').value.trim();
             const daysBack = parseInt(document.getElementById('daysBack').value);
-            const lat = document.getElementById('lat').value;
-            const lng = document.getElementById('lng').value;
+            const lat = parseFloat(document.getElementById('lat').value);
+            const lng = parseFloat(document.getElementById('lng').value);
             const dist = document.getElementById('dist').value;
 
             const errorDiv = document.getElementById('error');
@@ -347,8 +342,8 @@
                 errorDiv.classList.remove('hidden');
                 return;
             }
-            if (!lat || !lng) {
-                errorDiv.textContent = "Please enter Latitude and Longitude.";
+            if (isNaN(lat) || isNaN(lng)) {
+                errorDiv.textContent = "Please enter valid Latitude and Longitude.";
                 errorDiv.classList.remove('hidden');
                 return;
             }
@@ -374,6 +369,14 @@
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error || 'API Error');
 
+                // Calculate distance for each observation and sort
+                data.forEach(obs => {
+                    obs.distance = calculateDistance(lat, lng, obs.lat, obs.lng);
+                });
+
+                // Sort by distance (ascending)
+                data.sort((a, b) => a.distance - b.distance);
+
                 displayNearbyResults(data, daysBack);
             } catch (err) {
                 errorDiv.textContent = err.message;
@@ -382,6 +385,24 @@
                 checkBtn.disabled = false;
                 checkBtn.textContent = 'Find Nearby Sightings';
             }
+        }
+
+        // Haversine formula to calculate distance between two points
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radius of the earth in km
+            const dLat = deg2rad(lat2 - lat1);
+            const dLon = deg2rad(lon2 - lon1);
+            const a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            const d = R * c; // Distance in km
+            return d;
+        }
+
+        function deg2rad(deg) {
+            return deg * (Math.PI / 180)
         }
 
         function displayHotspotResults(results, daysBack) {
@@ -438,7 +459,7 @@
 
             const container = document.createElement('div');
             container.className = 'bg-white rounded-lg shadow-lg p-6';
-            container.innerHTML = `<h2 class="text-xl font-bold text-gray-800 mb-4">${observations.length} Sightings Found Nearby</h2><div class="space-y-4"></div>`;
+            container.innerHTML = `<h2 class="text-xl font-bold text-gray-800 mb-4">${observations.length} Sightings Found Nearby (Closest First)</h2><div class="space-y-4"></div>`;
             const list = container.querySelector('.space-y-4');
 
             observations.forEach(obs => {
@@ -448,6 +469,7 @@
                     <div class="flex justify-between items-start">
                          <div>
                             <div class="font-bold text-gray-800">${obs.locName}</div>
+                            <div class="text-xs font-semibold text-blue-600 mb-1">${obs.distance.toFixed(1)} km away</div>
                             <div class="text-sm text-gray-600">${new Date(obs.obsDt).toLocaleString()}</div>
                          </div>
                          <a href="https://google.com/maps?q=${obs.lat},${obs.lng}" target="_blank" class="text-blue-600 hover:text-blue-800">
