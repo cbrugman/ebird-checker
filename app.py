@@ -2,6 +2,9 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import requests
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__, static_folder='static')
 CORS(app)
@@ -16,12 +19,16 @@ def index():
 def get_observations():
     try:
         data = request.json
-        api_key = data.get('apiKey')
+        # apiKey is no longer expected from client
+        api_key = os.environ.get('EBIRD_API_KEY')
         location_id = data.get('locationId')
         species_code = data.get('speciesCode')
         days_back = data.get('daysBack', 30)
         
-        if not api_key or not location_id or not species_code:
+        if not api_key:
+             return jsonify({'error': 'Server configuration error: API key missing'}), 500
+
+        if not location_id or not species_code:
             return jsonify({'error': 'Missing required parameters'}), 400
         
         url = f"{EBIRD_API_BASE}/data/obs/{location_id}/recent/{species_code}"
@@ -33,6 +40,12 @@ def get_observations():
         if response.status_code == 200:
             return jsonify(response.json())
         else:
+            # Debugging output
+            print(f"eBird API Error: {response.status_code}")
+            print(f"URL: {url}")
+            print(f"Headers (masked): {headers.keys()}")
+            print(f"Response: {response.text}")
+            
             return jsonify({
                 'error': f'eBird API error: {response.status_code}',
                 'message': response.text
