@@ -55,7 +55,17 @@
 
                 <!-- Tab Content: Hotspots -->
                 <div id="tab-hotspots" class="space-y-4">
-                    <p class="text-sm text-gray-600 mb-4">Check for sightings at your configured favorite locations.</p>
+                    <p class="text-sm text-gray-600">Check for sightings at your favorite locations.</p>
+
+                    <!-- Favorites List Container -->
+                    <div id="favorites-list"
+                        class="space-y-2 max-h-60 overflow-y-auto mb-4 bg-gray-50 p-2 rounded border border-gray-200 hidden">
+                        <!-- Dynamic content -->
+                    </div>
+                    <div id="favorites-empty" class="text-center text-gray-500 italic py-4">
+                        You haven't added any locations yet. Go to "Explore Nearby" to find some!
+                    </div>
+
                     <button onclick="checkHotspots()" id="checkBtn"
                         class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
                         Check My Hotspots
@@ -114,18 +124,108 @@
     </div>
 
     <script>
-        const hotspots = [
-            { id: 'L4123220', name: 'Holland Marsh between Hwy 400 and Keele Street' },
-            { id: 'L6504833', name: 'Location L6504833' }
-        ];
+        // LocalStorage key
+        const STORAGE_KEY = 'ebird_favorites';
 
+        let favorites = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
         let allSpecies = [];
         let currentTab = 'hotspots';
 
         // Initialize user functionality
         document.addEventListener('DOMContentLoaded', async () => {
+            renderFavorites();
             initSpeciesLookup();
         });
+
+        function saveFavorites() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites));
+            renderFavorites();
+        }
+
+        function renderFavorites() {
+            const listDiv = document.getElementById('favorites-list');
+            const emptyDiv = document.getElementById('favorites-empty');
+            const checkBtn = document.getElementById('checkBtn');
+
+            listDiv.innerHTML = '';
+
+            if (favorites.length === 0) {
+                listDiv.classList.add('hidden');
+                emptyDiv.classList.remove('hidden');
+                checkBtn.disabled = true;
+                checkBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                checkBtn.title = "Add favorites first";
+            } else {
+                listDiv.classList.remove('hidden');
+                emptyDiv.classList.add('hidden');
+                checkBtn.disabled = false;
+                checkBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                checkBtn.title = "";
+
+                favorites.forEach(fav => {
+                    const item = document.createElement('div');
+                    item.className = 'flex justify-between items-center bg-white p-3 rounded shadow-sm border border-gray-100';
+                    item.innerHTML = `
+                        <div>
+                            <div class="font-medium text-gray-800 text-sm">${fav.name}</div>
+                            <div class="text-xs text-gray-500">${fav.id}</div>
+                        </div>
+                        <button onclick="removeFavorite('${fav.id}')" class="text-red-400 hover:text-red-600 p-1">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    `;
+                    listDiv.appendChild(item);
+                });
+            }
+        }
+
+        function isFavorite(id) {
+            return favorites.some(f => f.id === id);
+        }
+
+        function toggleFavorite(id, name, btn) {
+            // Note: Preventing bubble up is handled by caller usually or e.stopPropagation()
+            const index = favorites.findIndex(f => f.id === id);
+
+            if (index > -1) {
+                // Remove
+                favorites.splice(index, 1);
+            } else {
+                // Add
+                favorites.push({ id, name });
+            }
+
+            saveFavorites();
+
+            // Re-render the specific button state if passed
+            if (btn) {
+                const isFav = isFavorite(id);
+                updateStarButton(btn, isFav);
+            }
+
+            // Also need to update ALL other buttons with this ID on screen just in case of duplicates
+            document.querySelectorAll(`.fav-btn-${id}`).forEach(b => updateStarButton(b, isFavorite(id)));
+        }
+
+        function removeFavorite(id) {
+            const index = favorites.findIndex(f => f.id === id);
+            if (index > -1) {
+                favorites.splice(index, 1);
+                saveFavorites();
+                // Update any stars on screen
+                document.querySelectorAll(`.fav-btn-${id}`).forEach(b => updateStarButton(b, false));
+            }
+        }
+
+        function updateStarButton(btn, isFav) {
+            if (isFav) {
+                btn.innerHTML = `<svg class="w-6 h-6 text-yellow-400" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>`;
+                btn.title = "Remove from Favorites";
+            } else {
+                btn.innerHTML = `<svg class="w-6 h-6 text-gray-300 hover:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>`;
+                btn.title = "Add to Favorites";
+            }
+        }
 
         function switchTab(tab) {
             currentTab = tab;
@@ -292,7 +392,7 @@
             checkBtn.textContent = 'Checking...';
 
             try {
-                const results = await Promise.all(hotspots.map(async (hotspot) => {
+                const results = await Promise.all(favorites.map(async (hotspot) => {
                     try {
                         const response = await fetch('/api/observations', {
                             method: 'POST',
@@ -412,16 +512,25 @@
                 const resultCard = document.createElement('div');
                 resultCard.className = 'bg-white rounded-lg shadow-lg p-6';
 
+                // Check favorited status
+                const isFav = isFavorite(result.hotspot.id);
+                const starClass = isFav ? "text-yellow-400" : "text-gray-300 hover:text-yellow-400";
+
                 let content = `
-                    <div class="flex items-start gap-3 mb-4">
-                        <svg class="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        </svg>
-                        <div>
-                            <h2 class="text-xl font-bold text-gray-800">${result.hotspot.name}</h2>
-                            <p class="text-sm text-gray-500">Location ID: ${result.hotspot.id}</p>
+                    <div class="flex items-start justify-between gap-3 mb-4">
+                        <div class="flex items-start gap-3">
+                            <svg class="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-800">${result.hotspot.name}</h2>
+                                <p class="text-sm text-gray-500">Location ID: ${result.hotspot.id}</p>
+                            </div>
                         </div>
+                        <button onclick="toggleFavorite('${result.hotspot.id}', '${result.hotspot.name.replace(/'/g, "\\'")}', this)" class="fav-btn-${result.hotspot.id} p-1">
+                             ${getStarSVG(isFav)}
+                        </button>
                     </div>
                 `;
 
@@ -463,12 +572,19 @@
             const list = container.querySelector('.space-y-4');
 
             observations.forEach(obs => {
+                const isFav = isFavorite(obs.locId);
+
                 const item = document.createElement('div');
                 item.className = 'border-l-4 border-green-400 pl-4 py-2 bg-green-50 rounded';
                 item.innerHTML = `
                     <div class="flex justify-between items-start">
                          <div>
-                            <div class="font-bold text-gray-800">${obs.locName}</div>
+                            <div class="flex items-center gap-2">
+                                <div class="font-bold text-gray-800">${obs.locName}</div>
+                                <button onclick="toggleFavorite('${obs.locId}', '${obs.locName.replace(/'/g, "\\'")}', this)" class="fav-btn-${obs.locId} ml-2 p-1 focus:outline-none" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
+                                     ${getStarSVG(isFav)}
+                                </button>
+                            </div>
                             <div class="text-xs font-semibold text-blue-600 mb-1">${obs.distance.toFixed(1)} km away</div>
                             <div class="text-sm text-gray-600">${new Date(obs.obsDt).toLocaleString()}</div>
                          </div>
@@ -482,6 +598,13 @@
             });
 
             resultsDiv.appendChild(container);
+        }
+
+        function getStarSVG(isFav) {
+            if (isFav) {
+                return `<svg class="w-6 h-6 text-yellow-400" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>`;
+            }
+            return `<svg class="w-6 h-6 text-gray-300 hover:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>`;
         }
 
         function renderObservation(obs, showDate = true) {
