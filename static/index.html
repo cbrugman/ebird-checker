@@ -8,90 +8,213 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-gradient-to-br from-sky-50 to-blue-100 min-h-screen p-6">
-    <div class="max-w-4xl mx-auto">
-        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <div class="flex items-center gap-3 mb-6">
-                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<body class="bg-slate-50 min-h-screen p-6 font-sans text-slate-800">
+    <div class="max-w-3xl mx-auto relative">
+
+        <!-- User Menu -->
+        <div class="absolute top-0 right-0 p-2 transform -translate-y-2">
+            <button id="loginBtn" onclick="openAuthModal()"
+                class="text-sm font-semibold text-emerald-600 hover:text-emerald-700 bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-200 transition-all hover:shadow-md">
+                Log In
+            </button>
+            <div id="userInfo"
+                class="hidden flex items-center gap-3 bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-200">
+                <span id="userGreeting" class="text-sm font-medium text-slate-700"></span>
+                <button onclick="logout()"
+                    class="text-xs font-semibold text-slate-400 hover:text-red-500 uppercase tracking-wider">
+                    Log Out
+                </button>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center p-3 bg-emerald-100 rounded-full mb-4">
+                <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>
-                <h1 class="text-3xl font-bold text-gray-800">eBird Hotspot Checker</h1>
             </div>
+            <h1 class="text-3xl font-bold text-slate-900 tracking-tight">eBird Hotspot Checker</h1>
+            <p class="text-slate-500 mt-2">Discover notable birds and manage your favorite local spots</p>
+        </div>
+
+        <!-- Main Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
 
             <div class="space-y-4">
                 <!-- API Key input removed for security -->
 
                 <!-- Shared Inputs -->
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <div class="relative">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Species (Start typing)</label>
-                        <input type="text" id="speciesSearch" placeholder="e.g. Snowy Owl" autocomplete="off"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <!-- Shared Inputs -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div id="species-input-container" class="relative">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Target
+                            Species</label>
+                        <div class="relative">
+                            <input type="text" id="speciesSearch" placeholder="e.g. Snowy Owl" autocomplete="off"
+                                class="w-full pl-4 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all font-medium text-slate-800 placeholder-slate-400">
+                            <div
+                                class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+
                         <input type="hidden" id="speciesCode" value="">
                         <!-- Dropdown -->
                         <div id="speciesDropdown"
-                            class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto hidden">
+                            class="absolute z-50 w-full mt-2 bg-white border border-slate-100 rounded-xl shadow-xl max-h-60 overflow-y-auto hidden">
                         </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Days Back (1-30)</label>
-                        <input type="number" id="daysBack" value="30" min="1" max="30"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <label
+                            class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Timeframe</label>
+                        <div class="relative">
+                            <input type="number" id="daysBack" value="30" min="1" max="30"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all font-medium text-slate-800">
+                            <div
+                                class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-slate-400 text-sm font-medium">
+                                Days
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Tabs -->
-                <div class="flex border-b border-gray-200 mb-6">
-                    <button id="tab-btn-hotspots" onclick="switchTab('hotspots')"
-                        class="w-1/2 py-2 px-4 text-center font-medium text-blue-600 border-b-2 border-blue-600 focus:outline-none">
-                        My Favorites
-                    </button>
-                    <button id="tab-btn-nearby" onclick="switchTab('nearby')"
-                        class="w-1/2 py-2 px-4 text-center font-medium text-gray-500 hover:text-gray-700 focus:outline-none">
-                        Explore Nearby
-                    </button>
+                <!-- Tab Navigation (Pills) -->
+                <div class="flex justify-center mb-8">
+                    <div class="bg-slate-100 p-1 rounded-xl inline-flex">
+                        <button id="tab-btn-nearby" onclick="switchTab('nearby')"
+                            class="px-6 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm bg-white text-slate-800">
+                            Explore Nearby
+                        </button>
+                        <button id="tab-btn-hotspots" onclick="switchTab('hotspots')"
+                            class="px-6 py-2.5 rounded-lg text-sm font-semibold text-slate-500 hover:text-slate-700 transition-all">
+                            My Favorites
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Tab Content: Hotspots -->
-                <div id="tab-hotspots" class="space-y-4">
-                    <p class="text-sm text-gray-600">Check for sightings at your favorite locations.</p>
+                <div id="tab-hotspots" class="hidden space-y-6">
+                    <p class="text-sm text-slate-500 text-center">Manage and check your favorite monitoring locations.
+                    </p>
 
                     <!-- Favorites List Container -->
-                    <div id="favorites-list"
-                        class="space-y-2 max-h-60 overflow-y-auto mb-4 bg-gray-50 p-2 rounded border border-gray-200 hidden">
+                    <div id="favorites-list" class="space-y-3 max-h-60 overflow-y-auto mb-4 p-1 hidden">
                         <!-- Dynamic content -->
                     </div>
-                    <div id="favorites-empty" class="text-center text-gray-500 italic py-4">
-                        You haven't added any locations yet. Go to "Explore Nearby" to find some!
+
+                    <div id="favorites-empty"
+                        class="text-center py-8 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                        <div class="text-slate-400 mb-2">
+                            <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                                </path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </div>
+                        <p class="text-slate-600 font-medium">No favorite locations yet</p>
+                        <p class="text-sm text-slate-500 mt-1">Add one below or find nearby hotspots</p>
+                    </div>
+
+                    <!-- Manual Add Section -->
+                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4">Add Manual Location
+                        </h3>
+
+                        <div class="space-y-4">
+                            <!-- Lookup by ID -->
+                            <div class="flex gap-3">
+                                <div class="relative flex-1">
+                                    <input type="text" id="manualLocId" placeholder="Loc ID (e.g. L12345)"
+                                        class="w-full pl-4 pr-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm uppercase font-medium text-slate-700">
+                                </div>
+                                <button onclick="lookupHotspotId()"
+                                    class="px-4 py-2 bg-slate-200 text-slate-700 font-semibold rounded-lg text-sm hover:bg-slate-300 transition-colors">
+                                    Lookup
+                                </button>
+                            </div>
+
+                            <!-- Search by Name -->
+                            <div class="relative">
+                                <div class="flex gap-3">
+                                    <div class="relative flex-1">
+                                        <input type="text" id="manualLocName" placeholder="Name (e.g. High Park)"
+                                            class="w-full pl-4 pr-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm font-medium text-slate-700"
+                                            autocomplete="off">
+                                    </div>
+                                    <button onclick="searchHotspotsByName()"
+                                        class="px-4 py-2 bg-slate-200 text-slate-700 font-semibold rounded-lg text-sm hover:bg-slate-300 transition-colors">
+                                        Search
+                                    </button>
+                                </div>
+                                <!-- Dropdown for search results -->
+                                <div id="hotspotSearchDropdown"
+                                    class="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-40 overflow-y-auto hidden">
+                                </div>
+                            </div>
+
+                            <button onclick="addManualFavorite()"
+                                class="w-full py-2.5 bg-slate-800 text-white rounded-xl text-sm font-semibold hover:bg-slate-900 transition-colors shadow-sm">
+                                Add to Favorites
+                            </button>
+                        </div>
                     </div>
 
                     <button onclick="checkHotspots()" id="checkBtn"
-                        class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                        class="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-emerald-200 hover:bg-emerald-700 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200">
                         Check My Hotspots
                     </button>
                 </div>
 
                 <!-- Tab Content: Nearby -->
-                <div id="tab-nearby" class="hidden space-y-4">
-                    <p class="text-sm text-gray-600 mb-4">Find sightings near a specific location.</p>
+                <div id="tab-nearby" class="space-y-6">
 
+                    <!-- Search Mode Toggle Checkboxes -->
                     <div class="grid grid-cols-2 gap-4">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="searchMode" value="species" checked onchange="toggleSearchMode()"
+                                class="peer sr-only">
+                            <div
+                                class="p-4 rounded-xl border-2 border-slate-200 bg-white hover:border-emerald-300 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 transition-all text-center">
+                                <div class="font-bold text-slate-800 text-sm mb-1">Specific Species</div>
+                                <div class="text-xs text-slate-500">Find a specific bird</div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="searchMode" value="notable" onchange="toggleSearchMode()"
+                                class="peer sr-only">
+                            <div
+                                class="p-4 rounded-xl border-2 border-slate-200 bg-white hover:border-emerald-300 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 transition-all text-center">
+                                <div class="font-bold text-slate-800 text-sm mb-1">Notable Birds</div>
+                                <div class="text-xs text-slate-500">Discover rare sightings</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Latitude</label>
+                            <label
+                                class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Latitude</label>
                             <input type="text" id="lat" placeholder="43.65"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all font-medium text-slate-800">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Longitude</label>
+                            <label
+                                class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Longitude</label>
                             <input type="text" id="lng" placeholder="-79.38"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all font-medium text-slate-800">
                         </div>
                     </div>
 
                     <button onclick="getLocation()" type="button"
-                        class="w-full bg-green-100 text-green-700 py-2 rounded-lg font-medium hover:bg-green-200 transition-colors flex items-center justify-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="w-full py-2.5 rounded-xl text-sm font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
                             </path>
@@ -102,14 +225,18 @@
                     </button>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Distance (km)</label>
-                        <input type="range" id="dist" min="1" max="50" value="25" class="w-full"
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-xs font-semibold uppercase tracking-wider text-slate-500">Search
+                                Radius</label>
+                            <span class="text-sm font-medium text-slate-700"><span id="distVal">25</span> km</span>
+                        </div>
+                        <input type="range" id="dist" min="1" max="50" value="25"
+                            class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
                             oninput="document.getElementById('distVal').innerText = this.value">
-                        <div class="text-xs text-gray-500 text-right"><span id="distVal">25</span> km</div>
                     </div>
 
                     <button onclick="checkNearby()" id="checkNearbyBtn"
-                        class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                        class="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-emerald-200 hover:bg-emerald-700 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200">
                         Find Nearby Sightings
                     </button>
                 </div>
@@ -123,23 +250,405 @@
 
     </div>
 
+    <!-- Auth Modal -->
+    <div id="authModal"
+        class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 transform transition-all scale-100">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="authTitle" class="text-2xl font-bold text-slate-900">Log In</h2>
+                <button onclick="closeAuthModal()" class="text-slate-400 hover:text-slate-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+
+            <form id="authForm" onsubmit="submitAuth(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Username</label>
+                    <input type="text" id="username" required
+                        class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                    <input type="password" id="password" required
+                        class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                </div>
+
+                <div id="authError" class="text-red-500 text-sm hidden"></div>
+
+                <button type="submit" id="authSubmitBtn"
+                    class="w-full bg-emerald-600 text-white py-2.5 rounded-lg font-bold hover:bg-emerald-700 transition-colors">
+                    Log In
+                </button>
+            </form>
+
+            <div class="mt-4 text-center text-sm text-slate-600">
+                <span id="authToggleText">Don't have an account?</span>
+                <button onclick="toggleAuthMode()" class="text-emerald-600 font-semibold hover:text-emerald-700 ml-1">
+                    <span id="authToggleBtn">Register</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // LocalStorage key
         const STORAGE_KEY = 'ebird_favorites';
 
-        let favorites = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        let favorites = [];
         let allSpecies = [];
-        let currentTab = 'hotspots';
+        let currentTab = 'nearby';
+        let currentUser = null;
+        let isRegistering = false;
 
         // Initialize user functionality
         document.addEventListener('DOMContentLoaded', async () => {
-            renderFavorites();
+            await checkUserStatus();
             initSpeciesLookup();
+            getLocation();
         });
 
-        function saveFavorites() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites));
+        async function checkUserStatus() {
+            try {
+                const response = await fetch('/api/user');
+                const data = await response.json();
+
+                if (data.authenticated) {
+                    currentUser = data.user;
+                    updateUserUI();
+                    await loadFavorites(); // Load from API
+                } else {
+                    currentUser = null;
+                    updateUserUI();
+                    loadFavoritesLocal(); // Load from LocalStorage
+                }
+            } catch (err) {
+                console.error("Auth check failed:", err);
+                loadFavoritesLocal();
+            }
+        }
+
+        function updateUserUI() {
+            const loginBtn = document.getElementById('loginBtn');
+            const userInfo = document.getElementById('userInfo');
+            const userGreeting = document.getElementById('userGreeting');
+            const authBtn = document.getElementById('authBtn'); // Top right if exists
+
+            if (currentUser) {
+                loginBtn.classList.add('hidden');
+                userInfo.classList.remove('hidden');
+                userGreeting.textContent = `Hi, ${currentUser.username}`;
+            } else {
+                loginBtn.classList.remove('hidden');
+                userInfo.classList.add('hidden');
+            }
+        }
+
+        // --- Auth Modal Logic ---
+        function openAuthModal() {
+            document.getElementById('authModal').classList.remove('hidden');
+            document.getElementById('username').focus();
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.add('hidden');
+            document.getElementById('authError').classList.add('hidden');
+            document.getElementById('authForm').reset();
+        }
+
+        function toggleAuthMode() {
+            isRegistering = !isRegistering;
+            const title = android = document.getElementById('authTitle');
+            const submitBtn = document.getElementById('authSubmitBtn');
+            const toggleText = document.getElementById('authToggleText');
+            const toggleBtn = document.getElementById('authToggleBtn');
+
+            if (isRegistering) {
+                title.innerText = 'Register';
+                submitBtn.innerText = 'Register';
+                toggleText.innerText = 'Already have an account?';
+                toggleBtn.innerText = 'Log In';
+            } else {
+                title.innerText = 'Log In';
+                submitBtn.innerText = 'Log In';
+                toggleText.innerText = "Don't have an account?";
+                toggleBtn.innerText = 'Register';
+            }
+        }
+
+        async function submitAuth(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('authError');
+            const btn = document.getElementById('authSubmitBtn');
+
+            if (!username || !password) return;
+
+            const endpoint = isRegistering ? '/api/register' : '/api/login';
+
+            btn.disabled = true;
+            btn.classList.add('opacity-50');
+            errorDiv.classList.add('hidden');
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) throw new Error(data.error || 'Auth failed');
+
+                currentUser = data.user;
+                updateUserUI();
+                closeAuthModal();
+
+                // Sync Logic: If logging in and we have local favorites, sync them?
+                await syncFavorites();
+
+            } catch (err) {
+                errorDiv.textContent = err.message;
+                errorDiv.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50');
+            }
+        }
+
+        async function logout() {
+            try {
+                await fetch('/api/logout', { method: 'POST' });
+                currentUser = null;
+                updateUserUI();
+                favorites = []; // Clear current view
+                loadFavoritesLocal(); // Revert to local storage view (which might be empty or stale)
+            } catch (err) {
+                console.error("Logout failed:", err);
+            }
+        }
+
+        // --- Favorites Management ---
+
+        function loadFavoritesLocal() {
+            favorites = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
             renderFavorites();
+        }
+
+        async function loadFavorites() {
+            if (!currentUser) return loadFavoritesLocal();
+
+            try {
+                const response = await fetch('/api/favorites');
+                if (response.ok) {
+                    const data = await response.json();
+                    favorites = data; // API returns [{id, name}, ...] which matches our structure
+                    renderFavorites();
+                }
+            } catch (err) {
+                console.error("Failed to load API favorites:", err);
+            }
+        }
+
+        async function addFavoriteToStorage(id, name) {
+            if (currentUser) {
+                // API
+                try {
+                    const res = await fetch('/api/favorites', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id, name })
+                    });
+                    if (res.ok) {
+                        await loadFavorites(); // Reload to be safe
+                    }
+                } catch (err) {
+                    alert("Failed to save favorite: " + err.message);
+                }
+            } else {
+                // Local
+                if (!favorites.some(f => f.id === id)) {
+                    favorites.push({ id, name });
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites));
+                    renderFavorites();
+                }
+            }
+        }
+
+        async function removeFavoriteFromStorage(id) {
+            if (currentUser) {
+                try {
+                    const res = await fetch(`/api/favorites/${id}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        await loadFavorites();
+                    }
+                } catch (err) {
+                    alert("Failed to remove favorite: " + err.message);
+                }
+            } else {
+                const index = favorites.findIndex(f => f.id === id);
+                if (index > -1) {
+                    favorites.splice(index, 1);
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites));
+                    renderFavorites();
+                }
+            }
+        }
+
+        async function syncFavorites() {
+            // Check if there are local favorites to sync
+            const local = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            if (local.length > 0 && currentUser) {
+                // We typically only want to do this ONCE or if implied. 
+                // Let's just loop and add them. The API handles duplicates (id+user unique).
+                // Show a small toast or indicator? For now just do it.
+
+                for (const fav of local) {
+                    await fetch('/api/favorites', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: fav.id, name: fav.name })
+                    });
+                }
+
+                // Clear local storage to avoid confusion? 
+                // Let's clear it so we know migration happened.
+                localStorage.removeItem(STORAGE_KEY);
+                await loadFavorites();
+            } else {
+                await loadFavorites();
+            }
+        }
+
+        function isFavorite(id) {
+            return favorites.some(f => f.id === id);
+        }
+
+        async function toggleFavorite(id, name, btn) {
+            // Check current status
+            const isFav = isFavorite(id);
+
+            if (isFav) {
+                await removeFavoriteFromStorage(id);
+            } else {
+                await addFavoriteToStorage(id, name);
+            }
+
+            // UI Updates in real-time if we want snappy feel? 
+            // The await calls above reload the list, so we just need to update button states.
+            // But since we reload, `isFavorite` will return correct value after await.
+
+            // Re-render the specific button state if passed (and others)
+            const newStatus = isFavorite(id);
+            if (btn) updateStarButton(btn, newStatus);
+            document.querySelectorAll(`.fav-btn-${id}`).forEach(b => updateStarButton(b, newStatus));
+        }
+
+        async function lookupHotspotId() {
+            const idInput = document.getElementById('manualLocId');
+            const nameInput = document.getElementById('manualLocName');
+            const id = idInput.value.trim().toUpperCase();
+
+            if (!id) {
+                alert("Please enter a Location ID.");
+                return;
+            }
+
+            try {
+                const btnDom = document.querySelector('#manualLocId + button');
+                if (btnDom) {
+                    btnDom.textContent = '...';
+                    btnDom.disabled = true;
+                }
+
+                const response = await fetch(`/api/hotspot/info?locId=${id}`);
+                const data = await response.json();
+
+                if (!response.ok) throw new Error(data.error || 'Lookup failed');
+
+                if (data.name) {
+                    nameInput.value = data.name;
+                } else {
+                    nameInput.value = data.locName || ''; // Try locName as well
+                    if (!data.name && !data.locName) alert("Location found but name is missing.");
+                }
+
+            } catch (err) {
+                alert("Error looking up ID: " + err.message);
+            } finally {
+                const btnDom = document.querySelector('#manualLocId + button');
+                if (btnDom) {
+                    btnDom.textContent = 'Lookup';
+                    btnDom.disabled = false;
+                }
+            }
+        }
+
+        async function searchHotspotsByName() {
+            const nameInput = document.getElementById('manualLocName');
+            const query = nameInput.value.trim().toLowerCase();
+            const dropdown = document.getElementById('hotspotSearchDropdown');
+
+            let lat = document.getElementById('lat').value;
+            let lng = document.getElementById('lng').value;
+
+            if (!lat || !lng) {
+                alert("Please set a location (Lat/Lng) in 'Explore Nearby' tab first so we know where to search!");
+                switchTab('nearby');
+                return;
+            }
+
+            if (!query) {
+                alert("Please enter a name to search.");
+                return;
+            }
+
+            try {
+                const btnDom = document.querySelector('#manualLocName + button');
+                if (btnDom) {
+                    btnDom.textContent = '...';
+                    btnDom.disabled = true;
+                }
+
+                const response = await fetch(`/api/hotspot/nearby?lat=${lat}&lng=${lng}&dist=50&fmt=json`);
+                const data = await response.json();
+
+                if (!response.ok) throw new Error(data.error || 'Search failed');
+
+                const matches = data.filter(h => h.locName.toLowerCase().includes(query));
+
+                if (matches.length === 0) {
+                    dropdown.innerHTML = '<div class="p-2 text-gray-500 text-sm">No matches found nearby.</div>';
+                } else {
+                    dropdown.innerHTML = matches.map(h => `
+                        <div class="p-2 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 border-gray-100"
+                             onclick="selectHotspotSearch('${h.locId}', '${h.locName.replace(/'/g, "\\'")}')">
+                            <div class="font-medium text-gray-800 text-sm">${h.locName}</div>
+                            <div class="text-xs text-gray-500">${h.locId}</div>
+                        </div>
+                    `).join('');
+                }
+                dropdown.classList.remove('hidden');
+
+            } catch (err) {
+                alert("Error searching: " + err.message);
+            } finally {
+                const btnDom = document.querySelector('#manualLocName + button');
+                if (btnDom) {
+                    btnDom.textContent = 'Search';
+                    btnDom.disabled = false;
+                }
+            }
+        }
+
+        function selectHotspotSearch(id, name) {
+            document.getElementById('manualLocId').value = id;
+            document.getElementById('manualLocName').value = name;
+            document.getElementById('hotspotSearchDropdown').classList.add('hidden');
         }
 
         function renderFavorites() {
@@ -147,30 +656,36 @@
             const emptyDiv = document.getElementById('favorites-empty');
             const checkBtn = document.getElementById('checkBtn');
 
+            if (!listDiv || !emptyDiv) return;
+
             listDiv.innerHTML = '';
 
             if (favorites.length === 0) {
                 listDiv.classList.add('hidden');
                 emptyDiv.classList.remove('hidden');
-                checkBtn.disabled = true;
-                checkBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                checkBtn.title = "Add favorites first";
+                if (checkBtn) {
+                    checkBtn.disabled = true;
+                    checkBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    checkBtn.title = "Add favorites first";
+                }
             } else {
                 listDiv.classList.remove('hidden');
                 emptyDiv.classList.add('hidden');
-                checkBtn.disabled = false;
-                checkBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                checkBtn.title = "";
+                if (checkBtn) {
+                    checkBtn.disabled = false;
+                    checkBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    checkBtn.title = "";
+                }
 
                 favorites.forEach(fav => {
                     const item = document.createElement('div');
-                    item.className = 'flex justify-between items-center bg-white p-3 rounded shadow-sm border border-gray-100';
+                    item.className = 'flex justify-between items-center bg-white p-3 rounded-xl shadow-sm border border-slate-200 transition-all hover:border-emerald-300';
                     item.innerHTML = `
                         <div>
-                            <div class="font-medium text-gray-800 text-sm">${fav.name}</div>
-                            <div class="text-xs text-gray-500">${fav.id}</div>
+                            <div class="font-medium text-slate-800 text-sm">${fav.name}</div>
+                            <div class="text-xs font-mono text-slate-400">${fav.id}</div>
                         </div>
-                        <button onclick="removeFavorite('${fav.id}')" class="text-red-400 hover:text-red-600 p-1">
+                        <button onclick="removeFavorite('${fav.id}')" class="text-slate-400 hover:text-red-500 p-2 rounded-lg hover:bg-slate-100 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
                     `;
@@ -179,43 +694,48 @@
             }
         }
 
-        function isFavorite(id) {
-            return favorites.some(f => f.id === id);
-        }
+        async function addManualFavorite() {
+            const idInput = document.getElementById('manualLocId');
+            const nameInput = document.getElementById('manualLocName');
+            const id = idInput.value.trim().toUpperCase();
+            const name = nameInput.value.trim();
 
-        function toggleFavorite(id, name, btn) {
-            // Note: Preventing bubble up is handled by caller usually or e.stopPropagation()
-            const index = favorites.findIndex(f => f.id === id);
-
-            if (index > -1) {
-                // Remove
-                favorites.splice(index, 1);
-            } else {
-                // Add
-                favorites.push({ id, name });
+            if (!id) {
+                alert("Please enter a Location ID (e.g. L123456)");
+                return;
             }
 
-            saveFavorites();
-
-            // Re-render the specific button state if passed
-            if (btn) {
-                const isFav = isFavorite(id);
-                updateStarButton(btn, isFav);
+            if (isFavorite(id)) {
+                alert("This location is already in your favorites!");
+                return;
             }
 
-            // Also need to update ALL other buttons with this ID on screen just in case of duplicates
-            document.querySelectorAll(`.fav-btn-${id}`).forEach(b => updateStarButton(b, isFavorite(id)));
+            const displayName = name || id;
+
+            await addFavoriteToStorage(id, displayName);
+
+            idInput.value = '';
+            nameInput.value = '';
+
+            document.querySelectorAll(`.fav-btn-${id}`).forEach(b => updateStarButton(b, true));
         }
 
-        function removeFavorite(id) {
-            const index = favorites.findIndex(f => f.id === id);
-            if (index > -1) {
-                favorites.splice(index, 1);
-                saveFavorites();
-                // Update any stars on screen
-                document.querySelectorAll(`.fav-btn-${id}`).forEach(b => updateStarButton(b, false));
-            }
+        async function removeFavorite(id) {
+            await removeFavoriteFromStorage(id);
+            document.querySelectorAll(`.fav-btn-${id}`).forEach(b => updateStarButton(b, false));
         }
+
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('hotspotSearchDropdown');
+            const nameInput = document.getElementById('manualLocName');
+            const searchBtn = document.querySelector('#manualLocName + button');
+
+            if (dropdown && !dropdown.classList.contains('hidden')) {
+                if (!dropdown.contains(e.target) && e.target !== nameInput && e.target !== searchBtn) {
+                    dropdown.classList.add('hidden');
+                }
+            }
+        });
 
         function updateStarButton(btn, isFav) {
             if (isFav) {
@@ -230,12 +750,11 @@
         function switchTab(tab) {
             currentTab = tab;
             // Update Buttons
-            document.getElementById('tab-btn-hotspots').className = tab === 'hotspots'
-                ? 'w-1/2 py-2 px-4 text-center font-medium text-blue-600 border-b-2 border-blue-600 focus:outline-none'
-                : 'w-1/2 py-2 px-4 text-center font-medium text-gray-500 hover:text-gray-700 focus:outline-none';
-            document.getElementById('tab-btn-nearby').className = tab === 'nearby'
-                ? 'w-1/2 py-2 px-4 text-center font-medium text-blue-600 border-b-2 border-blue-600 focus:outline-none'
-                : 'w-1/2 py-2 px-4 text-center font-medium text-gray-500 hover:text-gray-700 focus:outline-none';
+            const activeClasses = 'px-6 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm bg-white text-slate-800';
+            const inactiveClasses = 'px-6 py-2.5 rounded-lg text-sm font-semibold text-slate-500 hover:text-slate-700 transition-all';
+
+            document.getElementById('tab-btn-hotspots').className = tab === 'hotspots' ? activeClasses : inactiveClasses;
+            document.getElementById('tab-btn-nearby').className = tab === 'nearby' ? activeClasses : inactiveClasses;
 
             // Update Content
             document.getElementById('tab-hotspots').classList.toggle('hidden', tab !== 'hotspots');
@@ -426,8 +945,19 @@
             }
         }
 
+        function toggleSearchMode() {
+            const mode = document.querySelector('input[name="searchMode"]:checked').value;
+            const speciesContainer = document.getElementById('species-input-container');
+
+            if (mode === 'species') {
+                speciesContainer.classList.remove('hidden');
+            } else {
+                speciesContainer.classList.add('hidden');
+            }
+        }
+
         async function checkNearby() {
-            const speciesCode = document.getElementById('speciesCode').value.trim();
+            const mode = document.querySelector('input[name="searchMode"]:checked').value;
             const daysBack = parseInt(document.getElementById('daysBack').value);
             const lat = parseFloat(document.getElementById('lat').value);
             const lng = parseFloat(document.getElementById('lng').value);
@@ -437,15 +967,25 @@
             const resultsDiv = document.getElementById('results');
             const checkBtn = document.getElementById('checkNearbyBtn');
 
-            if (!speciesCode) {
-                errorDiv.textContent = "Please select a species from the list.";
-                errorDiv.classList.remove('hidden');
-                return;
-            }
+            // Validation
             if (isNaN(lat) || isNaN(lng)) {
                 errorDiv.textContent = "Please enter valid Latitude and Longitude.";
                 errorDiv.classList.remove('hidden');
                 return;
+            }
+
+            let body = { lat, lng, dist, daysBack };
+            let endpoint = '/api/notable';
+
+            if (mode === 'species') {
+                const speciesCode = document.getElementById('speciesCode').value.trim();
+                if (!speciesCode) {
+                    errorDiv.textContent = "Please select a species from the list.";
+                    errorDiv.classList.remove('hidden');
+                    return;
+                }
+                body.speciesCode = speciesCode;
+                endpoint = '/api/nearby';
             }
 
             errorDiv.classList.add('hidden');
@@ -454,16 +994,10 @@
             checkBtn.textContent = 'Searching...';
 
             try {
-                const response = await fetch('/api/nearby', {
+                const response = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        speciesCode,
-                        lat,
-                        lng,
-                        dist,
-                        daysBack
-                    })
+                    body: JSON.stringify(body)
                 });
 
                 const data = await response.json();
@@ -508,39 +1042,58 @@
         function displayHotspotResults(results, daysBack) {
             const resultsDiv = document.getElementById('results');
 
-            results.forEach(result => {
+            // Filter out hotspots with no observations
+            const activeResults = results.filter(r => r.observations && r.observations.length > 0);
+
+            if (activeResults.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center">
+                         <div class="text-slate-400 mb-3">
+                            <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <p class="text-slate-600 font-medium">No recent sightings found</p>
+                        <p class="text-sm text-slate-500 mt-1">Checked your favorites for the last ${daysBack} days.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            activeResults.forEach(result => {
                 const resultCard = document.createElement('div');
-                resultCard.className = 'bg-white rounded-lg shadow-lg p-6';
+                resultCard.className = 'bg-white rounded-2xl shadow-sm border border-slate-200 p-6 transition-all hover:shadow-md';
 
                 // Check favorited status
                 const isFav = isFavorite(result.hotspot.id);
-                const starClass = isFav ? "text-yellow-400" : "text-gray-300 hover:text-yellow-400";
 
                 let content = `
-                    <div class="flex items-start justify-between gap-3 mb-4">
-                        <div class="flex items-start gap-3">
-                            <svg class="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            </svg>
+                    <div class="flex items-start justify-between gap-4 mb-6">
+                        <div class="flex items-start gap-4">
+                            <div class="p-2 bg-emerald-100 rounded-lg text-emerald-600">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                            </div>
                             <div>
-                                <h2 class="text-xl font-bold text-gray-800">${result.hotspot.name}</h2>
-                                <p class="text-sm text-gray-500">Location ID: ${result.hotspot.id}</p>
+                                <h2 class="text-lg font-bold text-slate-900 leading-tight">${result.hotspot.name}</h2>
+                                <p class="text-xs font-mono text-slate-400 mt-1">${result.hotspot.id}</p>
                             </div>
                         </div>
-                        <button onclick="toggleFavorite('${result.hotspot.id}', '${result.hotspot.name.replace(/'/g, "\\'")}', this)" class="fav-btn-${result.hotspot.id} p-1">
+                        <button onclick="toggleFavorite('${result.hotspot.id}', '${result.hotspot.name.replace(/'/g, "\\'")}', this)" class="fav-btn-${result.hotspot.id} p-2 rounded-lg hover:bg-slate-100 transition-colors">
                              ${getStarSVG(isFav)}
                         </button>
                     </div>
                 `;
 
                 if (result.error) {
-                    content += `<div class="text-red-600 p-3 bg-red-50 rounded">Error: ${result.error}</div>`;
-                } else if (result.observations.length === 0) {
-                    content += `<div class="text-gray-600 italic">No observations found in the last ${daysBack} days</div>`;
+                    content += `<div class="p-4 bg-red-50 text-red-700 rounded-xl text-sm border border-red-100">Error: ${result.error}</div>`;
                 } else {
-                    content += `<div class="space-y-3">
-                        <p class="font-semibold text-green-700">${result.observations.length} observation(s) found</p>`;
+                    content += `<div class="space-y-4">
+                        <div class="flex items-center gap-2 mb-2">
+                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                ${result.observations.length} Observations
+                            </span>
+                        </div>`;
 
                     result.observations.forEach(obs => {
                         content += renderObservation(obs);
@@ -559,40 +1112,60 @@
 
             if (observations.length === 0) {
                 resultsDiv.innerHTML = `
-                    <div class="bg-white rounded-lg shadow-lg p-6 text-center text-gray-600 italic">
-                        No observations found nearby in the last ${daysBack} days.
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center">
+                         <div class="text-slate-400 mb-3">
+                            <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                        </div>
+                        <p class="text-slate-600 font-medium">No sightings found nearby</p>
+                        <p class="text-sm text-slate-500 mt-1">Try increasing the distance or days back.</p>
                     </div>
                 `;
                 return;
             }
 
             const container = document.createElement('div');
-            container.className = 'bg-white rounded-lg shadow-lg p-6';
-            container.innerHTML = `<h2 class="text-xl font-bold text-gray-800 mb-4">${observations.length} Sightings Found Nearby (Closest First)</h2><div class="space-y-4"></div>`;
+            container.className = 'bg-white rounded-2xl shadow-sm border border-slate-200 p-6';
+
+            container.innerHTML = `
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-lg font-bold text-slate-800">Nearby Sightings</h2>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                        ${observations.length} Found
+                    </span>
+                </div>
+                <div class="space-y-4"></div>
+            `;
             const list = container.querySelector('.space-y-4');
 
             observations.forEach(obs => {
                 const isFav = isFavorite(obs.locId);
 
                 const item = document.createElement('div');
-                item.className = 'border-l-4 border-green-400 pl-4 py-2 bg-green-50 rounded';
+                item.className = 'p-4 rounded-xl border border-slate-200 hover:border-emerald-200 hover:bg-slate-50 transition-all';
                 item.innerHTML = `
-                    <div class="flex justify-between items-start">
-                         <div>
-                            <div class="flex items-center gap-2">
-                                <div class="font-bold text-gray-800">${obs.locName}</div>
-                                <button onclick="toggleFavorite('${obs.locId}', '${obs.locName.replace(/'/g, "\\'")}', this)" class="fav-btn-${obs.locId} ml-2 p-1 focus:outline-none" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
+                    <div class="flex justify-between items-start mb-3">
+                         <div class="flex-1 mr-4">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <div class="font-bold text-slate-800 text-sm mb-0.5">${obs.locName}</div>
+                                    <div class="text-xs font-semibold text-emerald-600 flex items-center gap-1">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                        ${obs.distance.toFixed(1)} km away
+                                    </div>
+                                </div>
+                                <button onclick="toggleFavorite('${obs.locId}', '${obs.locName.replace(/'/g, "\\'")}', this)" class="fav-btn-${obs.locId} p-1 text-slate-400 hover:text-yellow-400 transition-colors" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
                                      ${getStarSVG(isFav)}
                                 </button>
                             </div>
-                            <div class="text-xs font-semibold text-blue-600 mb-1">${obs.distance.toFixed(1)} km away</div>
-                            <div class="text-sm text-gray-600">${new Date(obs.obsDt).toLocaleString()}</div>
                          </div>
-                         <a href="https://google.com/maps?q=${obs.lat},${obs.lng}" target="_blank" class="text-blue-600 hover:text-blue-800">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                         </a>
                     </div>
                     ${renderObservation(obs, false)}
+                    <div class="mt-3 pt-3 border-t border-slate-100 flex justify-end">
+                        <a href="https://google.com/maps?q=${obs.lat},${obs.lng}" target="_blank" class="text-xs font-medium text-slate-500 hover:text-emerald-600 flex items-center gap-1">
+                            Map 
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                        </a>
+                    </div>
                 `;
                 list.appendChild(item);
             });
@@ -600,28 +1173,52 @@
             resultsDiv.appendChild(container);
         }
 
-        function getStarSVG(isFav) {
-            if (isFav) {
-                return `<svg class="w-6 h-6 text-yellow-400" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>`;
-            }
-            return `<svg class="w-6 h-6 text-gray-300 hover:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>`;
-        }
-
+        // Helper to render single observation details
         function renderObservation(obs, showDate = true) {
-            const date = new Date(obs.obsDt).toLocaleDateString('en-US', {
-                year: 'numeric', month: 'short', day: 'numeric',
-                hour: '2-digit', minute: '2-digit'
-            });
+            const date = new Date(obs.obsDt).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
             return `
-                <div class="mt-2 text-sm text-gray-700">
-                    ${showDate ? `<div class="font-medium text-gray-900">${date}</div>` : ''}
-                    <div><span class="font-medium">Count:</span> ${obs.howMany || 1}</div>
-                    <div><span class="font-medium">Observer:</span> ${obs.userDisplayName || 'Anonymous'}</div>
-                     ${obs.subId ? `<a href="https://ebird.org/checklist/${obs.subId}" target="_blank" class="text-blue-600 hover:underline">View checklist →</a>` : ''}
+                <div class="bg-slate-50 rounded-lg p-3 border border-slate-100 text-sm">
+                    ${obs.comName ? `<div class="font-bold text-base text-slate-800 mb-2">${obs.comName}</div>` : ''}
+                    
+                    <div class="grid grid-cols-2 gap-y-1 gap-x-4 text-slate-600">
+                        ${showDate ? `<div class="col-span-2 text-xs text-slate-400 mb-1">${date}</div>` : ''}
+                        
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-semibold uppercase text-slate-400">Count</span>
+                            <span class="font-medium bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-800">${obs.howMany || 1}</span>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                             <span class="text-xs font-semibold uppercase text-slate-400">Observer</span>
+                             <span class="truncate" title="${obs.userDisplayName || 'Anonymous'}">${obs.userDisplayName || 'Anon'}</span>
+                        </div>
+                    </div>
+                    
+                    ${obs.subId ? `
+                    <div class="mt-2 text-right">
+                        <a href="https://ebird.org/checklist/${obs.subId}" target="_blank" class="text-xs font-medium text-emerald-600 hover:text-emerald-700 hover:underline">
+                            View Checklist &rarr;
+                        </a>
+                    </div>` : ''}
                 </div>
             `;
         }
+
+        function getStarSVG(isFav) {
+            if (isFav) {
+                return `<svg class="w-5 h-5 text-amber-400" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>`;
+            }
+            return `<svg class="w-5 h-5 text-slate-300 hover:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>`;
+        }
+        // Enforce max days back
+        document.getElementById('daysBack').addEventListener('input', function () {
+            let val = parseInt(this.value);
+            if (val > 30) {
+                this.value = 30;
+                // Optional: alert user? The user just asked to reset it.
+            }
+        });
     </script>
 </body>
 
