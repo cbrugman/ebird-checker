@@ -34,3 +34,12 @@ ENV/
 # OS
 .DS_Store
 Thumbs.db
+
+# Fly
+fly.toml
+.dockerignore
+Dockerfile
+fly-deploy.yml
+
+# Instance
+instance/

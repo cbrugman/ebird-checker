@@ -235,6 +235,17 @@
                             oninput="document.getElementById('distVal').innerText = this.value">
                     </div>
 
+                    <!-- Sort Options -->
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Sort
+                            By</label>
+                        <select id="sortBy" onchange="applySortForNearby()"
+                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all font-medium text-slate-800 appearance-none">
+                            <option value="distance">Distance (Closest First)</option>
+                            <option value="date">Date (Newest First)</option>
+                        </select>
+                    </div>
+
                     <button onclick="checkNearby()" id="checkNearbyBtn"
                         class="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-emerald-200 hover:bg-emerald-700 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200">
                         Find Nearby Sightings
@@ -302,6 +313,7 @@
         let currentTab = 'nearby';
         let currentUser = null;
         let isRegistering = false;
+        let latestNearbyData = [];
 
         // Initialize user functionality
         document.addEventListener('DOMContentLoaded', async () => {
@@ -1003,15 +1015,13 @@
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error || 'API Error');
 
-                // Calculate distance for each observation and sort
+                // Calculate distance for each observation
                 data.forEach(obs => {
                     obs.distance = calculateDistance(lat, lng, obs.lat, obs.lng);
                 });
 
-                // Sort by distance (ascending)
-                data.sort((a, b) => a.distance - b.distance);
-
-                displayNearbyResults(data, daysBack);
+                latestNearbyData = data;
+                applySortForNearby();
             } catch (err) {
                 errorDiv.textContent = err.message;
                 errorDiv.classList.remove('hidden');
@@ -1143,14 +1153,14 @@
                 const item = document.createElement('div');
                 item.className = 'p-4 rounded-xl border border-slate-200 hover:border-emerald-200 hover:bg-slate-50 transition-all';
                 item.innerHTML = `
-                    <div class="flex justify-between items-start mb-3">
-                         <div class="flex-1 mr-4">
+                    <div class="flex justify-between items-start mb-2">
+                         <div class="flex-1 mr-2">
                             <div class="flex items-start justify-between">
                                 <div>
-                                    <div class="font-bold text-slate-800 text-sm mb-0.5">${obs.locName}</div>
+                                    <div class="font-bold text-slate-800 text-sm">${obs.locName}</div>
                                     <div class="text-xs font-semibold text-emerald-600 flex items-center gap-1">
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                        ${obs.distance.toFixed(1)} km away
+                                        ${obs.distance.toFixed(1)} km
                                     </div>
                                 </div>
                                 <button onclick="toggleFavorite('${obs.locId}', '${obs.locName.replace(/'/g, "\\'")}', this)" class="fav-btn-${obs.locId} p-1 text-slate-400 hover:text-yellow-400 transition-colors" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
@@ -1159,13 +1169,7 @@
                             </div>
                          </div>
                     </div>
-                    ${renderObservation(obs, false)}
-                    <div class="mt-3 pt-3 border-t border-slate-100 flex justify-end">
-                        <a href="https://google.com/maps?q=${obs.lat},${obs.lng}" target="_blank" class="text-xs font-medium text-slate-500 hover:text-emerald-600 flex items-center gap-1">
-                            Map 
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                        </a>
-                    </div>
+                    ${renderObservation(obs, true)}
                 `;
                 list.appendChild(item);
             });
@@ -1178,29 +1182,27 @@
             const date = new Date(obs.obsDt).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
             return `
-                <div class="bg-slate-50 rounded-lg p-3 border border-slate-100 text-sm">
-                    ${obs.comName ? `<div class="font-bold text-base text-slate-800 mb-2">${obs.comName}</div>` : ''}
+                <div class="bg-slate-50 rounded-lg p-2 border border-slate-100 text-sm">
+                    ${obs.comName ? `<div class="font-bold text-base text-slate-800">${obs.comName}</div>` : ''}
                     
-                    <div class="grid grid-cols-2 gap-y-1 gap-x-4 text-slate-600">
-                        ${showDate ? `<div class="col-span-2 text-xs text-slate-400 mb-1">${date}</div>` : ''}
+                    <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 mt-1">
+                        ${showDate ? `<span>${date}</span> <span class="text-slate-300">•</span>` : ''}
                         
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-semibold uppercase text-slate-400">Count</span>
-                            <span class="font-medium bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-800">${obs.howMany || 1}</span>
-                        </div>
-
-                        <div class="flex items-center gap-2">
-                             <span class="text-xs font-semibold uppercase text-slate-400">Observer</span>
-                             <span class="truncate" title="${obs.userDisplayName || 'Anonymous'}">${obs.userDisplayName || 'Anon'}</span>
-                        </div>
+                        <span class="font-medium text-slate-700">${obs.howMany || 1}</span>
+                        <span class="text-slate-300">•</span>
+                        <span class="truncate max-w-[150px]" title="${obs.userDisplayName || 'Anonymous'}">${obs.userDisplayName || 'Anon'}</span>
                     </div>
-                    
-                    ${obs.subId ? `
-                    <div class="mt-2 text-right">
-                        <a href="https://ebird.org/checklist/${obs.subId}" target="_blank" class="text-xs font-medium text-emerald-600 hover:text-emerald-700 hover:underline">
-                            View Checklist &rarr;
+
+                    <div class="flex gap-4 mt-2 text-xs font-medium">
+                        ${obs.subId ? `
+                        <a href="https://ebird.org/checklist/${obs.subId}" target="_blank" class="text-emerald-600 hover:text-emerald-700 hover:underline flex items-center gap-1">
+                            Checklist
+                        </a>` : ''}
+                        
+                        <a href="https://google.com/maps?q=${obs.lat},${obs.lng}" target="_blank" class="text-slate-500 hover:text-emerald-600 flex items-center gap-1 hover:underline">
+                            Map
                         </a>
-                    </div>` : ''}
+                    </div>
                 </div>
             `;
         }
@@ -1219,6 +1221,26 @@
                 // Optional: alert user? The user just asked to reset it.
             }
         });
+
+        function applySortForNearby() {
+            const criteria = document.getElementById('sortBy').value;
+            const daysBack = parseInt(document.getElementById('daysBack').value);
+
+            if (!latestNearbyData || latestNearbyData.length === 0) return;
+
+            // Create a copy to sort
+            const sorted = [...latestNearbyData];
+
+            if (criteria === 'distance') {
+                sorted.sort((a, b) => a.distance - b.distance);
+            } else if (criteria === 'date') {
+                // obsDt is usually ISO string "YYYY-MM-DD HH:mm"
+                sorted.sort((a, b) => new Date(b.obsDt) - new Date(a.obsDt));
+            }
+
+            document.getElementById('results').innerHTML = ''; // Clear existing results
+            displayNearbyResults(sorted, daysBack);
+        }
     </script>
 </body>
 
